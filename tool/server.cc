@@ -162,6 +162,14 @@ static void InfoCallback(const SSL *ssl, int type, int value) {
   }
 }
 
+static void TraceContextCallback(const SSL *ssl, const uint8_t *data, size_t len) {
+  fprintf(stderr, "got a trace context with %zu bytes!\n", len);
+  for (size_t i = 0; i < len; i++) {
+    fprintf(stderr, "%c", data[i]);
+  }
+  fprintf(stderr, "\n");
+}
+
 static FILE *g_keylog_file = nullptr;
 
 static void KeyLogCallback(const SSL *ssl, const char *line) {
@@ -310,6 +318,8 @@ bool Server(const std::vector<std::string> &args) {
   if (args_map.count("-debug") != 0) {
     SSL_CTX_set_info_callback(ctx.get(), InfoCallback);
   }
+  
+  SSL_CTX_set_tlsext_trace_context_cb(ctx.get(), TraceContextCallback);
 
   if (args_map.count("-require-any-client-cert") != 0) {
     SSL_CTX_set_verify(

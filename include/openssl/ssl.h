@@ -4688,6 +4688,20 @@ OPENSSL_EXPORT int SSL_CTX_set_tlsext_status_cb(SSL_CTX *ctx,
 // |SSL_CTX_set_tlsext_status_cb|'s callback and returns one.
 OPENSSL_EXPORT int SSL_CTX_set_tlsext_status_arg(SSL_CTX *ctx, void *arg);
 
+// SSL_CTX_get_tlsext_trace_context writes |ctx|'s trace context value to
+// |len| bytes of |out|.
+OPENSSL_EXPORT int SSL_CTX_get_tlsext_trace_context(SSL_CTX *ctx, uint8_t *trace_context,
+                                                    size_t trace_context_len);
+
+// SSL_CTX_set_tlsext_trace_context sets |ctx|'s trace context to
+// |len| bytes of |in|.
+OPENSSL_EXPORT int SSL_CTX_set_tlsext_trace_context(SSL_CTX *ctx,
+                                                    const uint8_t *trace_context,
+                                                    size_t trace_context_len);
+
+OPENSSL_EXPORT int SSL_CTX_set_tlsext_trace_context_cb(
+    SSL_CTX *ctx, void (*cb)(const SSL *ssl, const uint8_t *trace_context,
+                             size_t trace_context_len));
 
 // Nodejs compatibility section (hidden).
 //

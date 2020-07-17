@@ -2500,6 +2500,7 @@ struct SSL3_STATE {
   // srtp_profile is the selected SRTP protection profile for
   // DTLS-SRTP.
   const SRTP_PROTECTION_PROFILE *srtp_profile = nullptr;
+
 };
 
 // lengths of messages
@@ -3338,6 +3339,11 @@ struct ssl_ctx_st {
 
   // If enable_early_data is true, early data can be sent and accepted.
   bool enable_early_data : 1;
+
+  // trace context
+  bssl::Array<uint8_t> trace_context;
+  void (*trace_context_cb)(const SSL *ssl, const uint8_t *trace_context,
+                           size_t trace_context_len) = nullptr;
 
  private:
   ~ssl_ctx_st();

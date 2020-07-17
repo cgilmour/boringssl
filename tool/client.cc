@@ -64,6 +64,9 @@ static const struct argument kArguments[] = {
         "-server-name", kOptionalArgument, "The server name to advertise",
     },
     {
+        "-trace-context", kOptionalArgument, "The trace context to inject",
+    },
+    {
         "-select-next-proto", kOptionalArgument,
         "An NPN protocol to select if the server supports NPN",
     },
@@ -263,6 +266,11 @@ static bool DoConnection(SSL_CTX *ctx,
 
   if (args_map.count("-server-name") != 0) {
     SSL_set_tlsext_host_name(ssl.get(), args_map["-server-name"].c_str());
+  }
+
+  if (args_map.count("-trace-context") != 0) {
+    const std::string& trace_context = args_map["-trace-context"].c_str();
+    SSL_CTX_set_tlsext_trace_context(SSL_get_SSL_CTX(ssl.get()), (const uint8_t *) trace_context.c_str(), trace_context.size());
   }
 
   if (args_map.count("-session-in") != 0) {

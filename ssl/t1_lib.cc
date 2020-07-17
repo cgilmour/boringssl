@@ -2772,6 +2772,42 @@ static bool cert_compression_add_serverhello(SSL_HANDSHAKE *hs, CBB *out) {
   return true;
 }
 
+static bool ext_trace_context_add_clienthello(SSL_HANDSHAKE *hs, CBB *out) {
+  SSL *const ssl = hs->ssl;
+  if (ssl->ctx->trace_context.data() == nullptr) {
+    return true;
+  }
+
+  CBB contents;
+  if (!CBB_add_u16(out, TLSEXT_TYPE_trace_context) ||
+      !CBB_add_u16_length_prefixed(out, &contents) ||
+      !CBB_add_bytes(&contents, ssl->ctx->trace_context.data(), ssl->ctx->trace_context.size()) ||
+      !CBB_flush(out)) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool ext_trace_context_parse_clienthello(SSL_HANDSHAKE *hs,
+                                                uint8_t *out_alert,
+                                                CBS *contents) {
+  SSL *const ssl = hs->ssl;
+  if (contents == nullptr) {
+    return true;
+  }
+
+  fprintf(stderr, "ext_trace_context_parse_clienthello: %zu\n", CBS_len(contents));
+  if (CBS_len(contents) == 0) {
+    return true;
+  }
+  ssl->ctx->trace_context.CopyFrom(MakeConstSpan(CBS_data(contents), CBS_len(contents)));
+
+  if (ssl->ctx->trace_context_cb != nullptr) {
+    ssl->ctx->trace_context_cb(ssl, ssl->ctx->trace_context.data(), ssl->ctx->trace_context.size());
+  }
+  return true;
+}
 
 // kExtensions contains all the supported extensions.
 static const struct tls_extension kExtensions[] = {
@@ -2951,6 +2987,14 @@ static const struct tls_extension kExtensions[] = {
     ext_delegated_credential_add_clienthello,
     forbid_parse_serverhello,
     ext_delegated_credential_parse_clienthello,
+    dont_add_serverhello,
+  },
+  {
+    TLSEXT_TYPE_trace_context,
+    NULL,
+    ext_trace_context_add_clienthello,
+    forbid_parse_serverhello,
+    ext_trace_context_parse_clienthello,
     dont_add_serverhello,
   },
 };

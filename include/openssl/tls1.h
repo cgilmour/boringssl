@@ -236,6 +236,10 @@ extern "C" {
 // extension number.
 #define TLSEXT_TYPE_delegated_credential 0xff02
 
+// This is a total hack and should never see the light of day.
+// Also not an IANA defined extension number.
+#define TLSEXT_TYPE_trace_context 0xfff0
+
 // ExtensionType value from RFC6962
 #define TLSEXT_TYPE_certificate_timestamp 18
 

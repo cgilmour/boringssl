@@ -1918,6 +1918,44 @@ int SSL_CTX_set_tlsext_ticket_key_cb(
   return 1;
 }
 
+int SSL_CTX_get_tlsext_trace_context(SSL_CTX *ctx, uint8_t *out, size_t out_len) {
+  if (ctx->trace_context.data() == nullptr) {
+    return 0;
+  }
+  if (out == nullptr) {
+    return 1;
+  }
+  if (out_len == 0) {
+    return 1;
+  }
+  size_t trace_context_len = ctx->trace_context.size();
+  if (trace_context_len > out_len) {
+    trace_context_len = out_len;
+  }
+
+  OPENSSL_memcpy(out, ctx->trace_context.data(), trace_context_len);
+
+  return 1;
+}
+
+int SSL_CTX_set_tlsext_trace_context(SSL_CTX *ctx, const uint8_t *trace_context, size_t trace_context_len) {
+  if (trace_context == nullptr) {
+    return 1;
+  }
+  ctx->trace_context.CopyFrom(MakeConstSpan(trace_context, trace_context_len));
+  if (ctx->trace_context.data() == nullptr) {
+    OPENSSL_PUT_ERROR(SSL, ERR_R_MALLOC_FAILURE);
+    return 0;
+  }
+  return 1;
+}
+
+int SSL_CTX_set_tlsext_trace_context_cb(SSL_CTX *ctx,
+    void (*cb)(const SSL *ssl, const uint8_t *trace_context, size_t trace_context_len)) {
+  ctx->trace_context_cb = cb;
+  return 1;
+}
+
 int SSL_CTX_set1_curves(SSL_CTX *ctx, const int *curves, size_t curves_len) {
   return tls1_set_curves(&ctx->supported_group_list,
                          MakeConstSpan(curves, curves_len));
